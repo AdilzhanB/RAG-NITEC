@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced RAG Chatbot | AI Assistant 2.0</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <!-- Font Awesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Главный контейнер -->
+    <div class="app-container">
+        <!-- Боковая панель -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-robot"></i>
+                    <span>RAG AI</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Профиль пользователя -->
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">AdilzhanB</div>
+                    <div class="user-status">Online</div>
+                </div>
+            </div>
+
+            <!-- Навигация -->
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active" data-section="chat">
+                        <i class="fas fa-comments"></i>
+                        <span>Чат</span>
+                    </li>
+                    <li class="nav-item" data-section="analytics">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Аналитика</span>
+                    </li>
+                    <li class="nav-item" data-section="documents">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Документы</span>
+                    </li>
+                    <li class="nav-item" data-section="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Настройки</span>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Быстрые действия -->
+            <div class="quick-actions">
+                <button class="action-btn" id="clearChatBtn">
+                    <i class="fas fa-trash"></i>
+                    <span>Очистить чат</span>
+                </button>
+                <button class="action-btn" id="exportChatBtn">
+                    <i class="fas fa-download"></i>
+                    <span>Экспорт</span>
+                </button>
+            </div>
+
+            <!-- Системная информация -->
+            <div class="system-info">
+                <div class="info-item">
+                    <span class="label">Версия:</span>
+                    <span class="value">2.0.0</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Статус:</span>
+                    <span class="value status-online">Активна</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Время:</span>
+                    <span class="value" id="currentTime">--:--</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            <!-- Заголовок -->
+            <header class="header">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="header-title">
+                    <h1 id="sectionTitle">AI Ассистент</h1>
+                    <p id="sectionSubtitle">Умный помощник с системой обратной связи</p>
+                </div>
+                <div class="header-actions">
+                    <button class="header-btn" id="themeToggle" title="Переключить тему">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="header-btn" id="settingsBtn" title="Настройки">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <div class="connection-status" id="connectionStatus">
+                        <div class="status-dot"></div>
+                        <span>Подключено</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Секция чата -->
+            <section class="content-section active" id="chatSection">
+                <div class="chat-container">
+                    <!-- Область сообщений -->
+                    <div class="messages-area" id="messagesArea">
+                        <div class="welcome-message">
+                            <div class="welcome-icon">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h3>Добро пожаловать в RAG AI!</h3>
+                            <p>Я готов помочь с вопросами о государственных услугах Казахстана. Задайте любой вопрос!</p>
+                            <div class="suggestion-chips">
+                                <button class="chip" data-query="Как получить справку о несудимости?">
+                                    <i class="fas fa-file-alt"></i>
+                                    Справка о несудимости
+                                </button>
+                                <button class="chip" data-query="Регистрация ИП в Казахстане">
+                                    <i class="fas fa-briefcase"></i>
+                                    Регистрация ИП
+                                </button>
+                                <button class="chip" data-query="Услуги на egov.kz">
+                                    <i class="fas fa-globe"></i>
+                                    Услуги egov.kz
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Индикатор печати -->
+                    <div class="typing-indicator" id="typingIndicator">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span class="typing-text">AI думает...</span>
+                    </div>
+
+                    <!-- Панель ввода -->
+                    <div class="input-panel">
+                        <div class="input-container">
+                            <div class="input-wrapper">
+                                <textarea 
+                                    id="messageInput" 
+                                    placeholder="Задайте ваш вопрос..."
+                                    rows="1"
+                                    maxlength="2000"
+                                ></textarea>
+                                <div class="input-actions">
+                                    <button class="input-btn" id="attachBtn" title="Прикрепить файл">
+                                        <i class="fas fa-paperclip"></i>
+                                    </button>
+                                    <button class="input-btn" id="voiceBtn" title="Голосовой ввод">
+                                        <i class="fas fa-microphone"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button class="send-btn" id="sendBtn" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="input-footer">
+                            <div class="char-counter">
+                                <span id="charCount">0</span>/2000
+                            </div>
+                            <div class="quick-actions-input">
+                                <button class="quick-btn" id="searchWebBtn" title="Веб-поиск">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <button class="quick-btn" id="suggestionsBtn" title="Предложения">
+                                    <i class="fas fa-lightbulb"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Секция аналитики -->
+            <section class="content-section" id="analyticsSection">
+                <div class="analytics-container">
+                    <div class="analytics-header">
+                        <h2>Аналитика системы</h2>
+                        <div class="analytics-controls">
+                            <select id="analyticsRange">
+                                <option value="7">Последние 7 дней</option>
+                                <option value="30" selected>Последние 30 дней</option>
+                                <option value="90">Последние 90 дней</option>
+                            </select>
+                            <button class="refresh-btn" id="refreshAnalytics">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Метрики -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="totalQueries">--</div>
+                                <div class="metric-label">Всего запросов</div>
+                                <div class="metric-change positive">+12%</div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <i class="fas fa-thumbs-up"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="satisfactionRate">--</div>
+                                <div class="metric-label">Удовлетворенность</div>
+                                <div class="metric-change positive">+5%</div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="avgResponseTime">--</div>
+                                <div class="metric-label">Время ответа</div>
+                                <div class="metric-change negative">-8%</div>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-value" id="avgRating">--</div>
+                                <div class="metric-label">Средняя оценка</div>
+                                <div class="metric-change positive">+3%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Графики -->
+                    <div class="charts-container">
+                        <div class="chart-card">
+                            <h3>Активность запросов</h3>
+                            <canvas id="queriesChart"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Распределение типов запросов</h3>
+                            <canvas id="intentChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Таблица последних запросов -->
+                    <div class="recent-queries">
+                        <h3>Последние запросы</h3>
+                        <div class="table-container">
+                            <table id="recentQueriesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Время</th>
+                                        <th>Запрос</th>
+                                        <th>Тип</th>
+                                        <th>Оценка</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Данные загружаются динамически -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Секция документов -->
+            <section class="content-section" id="documentsSection">
+                <div class="documents-container">
+                    <div class="documents-header">
+                        <h2>Управление документами</h2>
+                        <button class="primary-btn" id="uploadDocBtn">
+                            <i class="fas fa-upload"></i>
+                            Загрузить документы
+                        </button>
+                    </div>
+
+                    <!-- Статистика документов -->
+                    <div class="docs-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="totalDocs">--</span>
+                            <span class="stat-label">Всего документов</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="indexedDocs">--</span>
+                            <span class="stat-label">Проиндексировано</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="docsSize">--</span>
+                            <span class="stat-label">Общий размер</span>
+                        </div>
+                    </div>
+
+                    <!-- Список документов -->
+                    <div class="documents-list">
+                        <div class="list-header">
+                            <h3>Загруженные документы</h3>
+                            <div class="list-controls">
+                                <input type="text" placeholder="Поиск документов..." id="docsSearch">
+                                <select id="docsFilter">
+                                    <option value="all">Все типы</option>
+                                    <option value="pdf">PDF</option>
+                                    <option value="docx">Word</option>
+                                    <option value="txt">Текст</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="docs-grid" id="docsGrid">
+                            <!-- Документы загружаются динамически -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Модальное окно загрузки -->
+                <div class="modal" id="uploadModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Загрузка документов</h3>
+                            <button class="modal-close" id="closeUploadModal">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <p>Перетащите файлы сюда или нажмите для выбора</p>
+                                <p class="upload-hint">Поддерживаются: PDF, DOCX, TXT (макс. 10MB)</p>
+                                <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt">
+                            </div>
+                            <div class="upload-progress" id="uploadProgress" style="display: none;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                                <div class="progress-text" id="progressText">Загрузка...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Секция настроек -->
+            <section class="content-section" id="settingsSection">
+                <div class="settings-container">
+                    <h2>Настройки</h2>
+                    
+                    <div class="settings-grid">
+                        <!-- Общие настройки -->
+                        <div class="settings-group">
+                            <h3>Общие</h3>
+                            <div class="setting-item">
+                                <label>Тема интерфейса</label>
+                                <select id="themeSelect">
+                                    <option value="light">Светлая</option>
+                                    <option value="dark">Темная</option>
+                                    <option value="auto">Автоматически</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label>Язык интерфейса</label>
+                                <select id="languageSelect">
+                                    <option value="ru">Русский</option>
+                                    <option value="kk">Қазақша</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label>Автоматическое сохранение истории</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="autoSaveHistory" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Настройки чата -->
+                        <div class="settings-group">
+                            <h3>Чат</h3>
+                            <div class="setting-item">
+                                <label>Звуковые уведомления</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="soundNotifications" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label>Показывать индикатор печати</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="showTyping" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label>Автодополнение запросов</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="autoComplete" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Настройки AI -->
+                        <div class="settings-group">
+                            <h3>AI Ассистент</h3>
+                            <div class="setting-item">
+                                <label>Температура генерации</label>
+                                <input type="range" id="temperature" min="0" max="100" value="70">
+                                <span class="range-value">0.7</span>
+                            </div>
+                            <div class="setting-item">
+                                <label>Максимальная длина ответа</label>
+                                <input type="range" id="maxLength" min="500" max="3000" value="1500">
+                                <span class="range-value">1500</span>
+                            </div>
+                            <div class="setting-item">
+                                <label>Использовать веб-поиск</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="useWebSearch" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Приватность -->
+                        <div class="settings-group">
+                            <h3>Приватность</h3>
+                            <div class="setting-item">
+                                <label>Сохранять историю чата</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="saveHistory" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label>Аналитика использования</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="analytics" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label>Время хранения данных (дни)</label>
+                                <input type="number" id="dataRetention" value="30" min="1" max="365">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Действия -->
+                    <div class="settings-actions">
+                        <button class="secondary-btn" id="resetSettingsBtn">
+                            <i class="fas fa-undo"></i>
+                            Сбросить настройки
+                        </button>
+                        <button class="primary-btn" id="saveSettingsBtn">
+                            <i class="fas fa-save"></i>
+                            Сохранить настройки
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Модальные окна -->
+    <!-- Модальное окно обратной связи -->
+    <div class="modal" id="feedbackModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Оценить ответ</h3>
+                <button class="modal-close" id="closeFeedbackModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="feedback-content">
+                    <div class="rating-section">
+                        <label>Оцените качество ответа:</label>
+                        <div class="star-rating" id="starRating">
+                            <span class="star" data-rating="1">★</span>
+                            <span class="star" data-rating="2">★</span>
+                            <span class="star" data-rating="3">★</span>
+                            <span class="star" data-rating="4">★</span>
+                            <span class="star" data-rating="5">★</span>
+                        </div>
+                    </div>
+                    
+                    <div class="feedback-type">
+                        <label>Тип обратной связи:</label>
+                        <div class="feedback-buttons">
+                            <button class="feedback-btn" data-type="like">
+                                <i class="fas fa-thumbs-up"></i>
+                                Нравится
+                            </button>
+                            <button class="feedback-btn" data-type="dislike">
+                                <i class="fas fa-thumbs-down"></i>
+                                Не нравится
+                            </button>
+                            <button class="feedback-btn" data-type="correction">
+                                <i class="fas fa-edit"></i>
+                                Исправление
+                            </button>
+                            <button class="feedback-btn" data-type="suggestion">
+                                <i class="fas fa-lightbulb"></i>
+                                Предложение
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="feedback-text" id="feedbackTextSection" style="display: none;">
+                        <label for="feedbackText">Ваш комментарий:</label>
+                        <textarea id="feedbackText" placeholder="Опишите, что можно улучшить..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-btn" id="cancelFeedback">Отмена</button>
+                <button class="primary-btn" id="submitFeedback">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомления -->
+    <div class="notifications-container" id="notificationsContainer"></div>
+
+    <!-- Загрузка скриптов -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
